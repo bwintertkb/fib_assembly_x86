@@ -1,87 +1,78 @@
 ; Fibonacci sequence in x86 assembly
 
 section .data
-	number_size dd 12
-	num_loops dd 10
+    number_size dd 12
+    num_loops dd 7
 
-; bass is a section to declare uninitialized data, resb stands for reserve byte
 section .bss
-	number resb 12 ; Reserve 12 bytes for the largest 32-bit integer when converted to string
+    number resb 12
 
 global _start
 
 section .text
 _start:
-	mov eax, 1
-	mov ebx, 1
-	mov ecx, [num_loops] ; [pointer] is a dereference
-	call fib
-	call print_result
-	mov eax, 1 ;sys_exit system call
-	mov ebx, 0 ;exit status is 0
-	int 0x80
+    mov rax, 1
+    mov rbx, 1
+    mov rcx, [num_loops]
+    call fib
+    call print_result
+    mov rax, 60 ;sys_exit system call number for x86_64
+    xor rdi, rdi ;exit status is 0
+    syscall
 
 fib:
-    ; Compute the next number in the sequence
-    mov edx, eax
-    add edx, ebx
-    mov eax, ebx
-    mov ebx, edx
-    dec ecx
-    cmp ecx, 0
+    mov rdx, rax
+    add rdx, rbx
+    mov rax, rbx
+    mov rbx, rdx
+    dec rcx
+    cmp rcx, 0
     jg fib
-    ; At this point, edx contains the last Fibonacci number calculated.
-    ; We need to move this into a memory location pointed to by [number].
-    mov [number], edx
+    mov [number], edx ; only the lower 32 bits are used here
     ret
 
 print_result:
-    ; Print the result to stdout
-    ; Before calling this, edx should contain the Fibonacci number to print.
-	mov eax, [number]
-	mov edi, number
-	mov ecx, 0 ; Counter
-	call integer_to_string_setup
-	call convert_loop
-    mov eax, 4          ; sys_write
-    mov ebx, 1          ; File descriptor 1 is stdout
-    mov ecx, number     ; Pointer to the string
-    mov edx, 12         ; Assume the string will not be longer than 12 characters
-    int 0x80            ; System call to write the string to stdout
+    mov rax, [number]
+    mov rdi, number
+    xor rcx, rcx
+    call integer_to_string_setup
+    call convert_loop
+    mov rax, 1          ; sys_write system call number for x86_64
+    mov rdi, 1          ; File descriptor 1 is stdout
+    mov rsi, number     ; Pointer to the string
+    mov rdx, 12         ; Assume the string will not be longer than 12 characters
+    syscall
     ret
 
 integer_to_string_setup:
-	mov ebx, 10 ; Divisor
-	mov ecx, edi ; Store start of the string
-	ret
+    mov rbx, 10
+    mov rcx, rdi
+    ret
 
 convert_loop:
-	xor edx, edx ; Clear edx
-	div ebx ; affects only eax, quotient is now divided by 10 and edx contains the remainder
-	add dl, '0'
-	mov [edi], dl
-	inc edi
-	cmp eax, 0
-	jne convert_loop
-	; Get ready to reverse the string
-	mov edx, edi ; we want to keep end of string address in edi for new line char
-	call reverse_loop
-	mov byte [edi+1], 0x0a ; add new string byte to end of string
-	ret
+    xor rdx, rdx
+    div rbx
+    add dl, '0'
+    mov [rdi], dl
+    inc rdi
+    cmp rax, 0
+    jne convert_loop
+    mov rdx, rdi
+    call reverse_loop
+    mov byte [rdi+1], 0x0a
+    ret
 
 reverse_loop:
-	mov eax, 0
-	cmp ecx, edx
-	jge end_reverse_loop
-	mov al, [ecx]
-	mov bl, [edx]
-	mov [ecx], bl
-	mov [edx], al
-	inc ecx
-	dec edx
-	jmp reverse_loop
+    mov rax, 0
+    cmp rcx, rdx
+    jge end_reverse_loop
+    mov al, [rcx]
+    mov bl, [rdx]
+    mov [rcx], bl
+    mov [rdx], al
+    inc rcx
+    dec rdx
+    jmp reverse_loop
 
 end_reverse_loop:
-	ret
-	
-	
+    ret
