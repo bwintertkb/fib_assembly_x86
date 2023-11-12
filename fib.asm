@@ -1,8 +1,8 @@
-; Fibonacci sequence in x86 assembly
+; Fibonacci sequence in x86_64 assembly
 
 section .data
     number_size dd 12
-    num_loops dd 7
+    num_loops dd 19 
 
 section .bss
     number resb 12
@@ -11,8 +11,6 @@ global _start
 
 section .text
 _start:
-    mov rax, 1
-    mov rbx, 1
     mov rcx, [num_loops]
     call fib
     call print_result
@@ -21,15 +19,39 @@ _start:
     syscall
 
 fib:
-    mov rdx, rax
-    add rdx, rbx
-    mov rax, rbx
-    mov rbx, rdx
+	push rbp
+	mov rbp, rsp
+	; Push initial values to the stack
+	push 1
+	push 1
+	call fib_loop
+	add rsp, 16 ; Clean the stack of the initially pushed values
+	pop rbp
+    ret
+	
+
+fib_loop:
+	push rbp
+	mov rbp, rsp
+	call fib_calc
+	pop rbp
     dec rcx
     cmp rcx, 0
-    jg fib
-    mov [number], edx ; only the lower 32 bits are used here
+    jg fib_loop
+	mov rax, [rsp + 24] ; Last fib. number
+	mov [number], rax
     ret
+
+fib_calc:
+	push rbp
+	mov rbp, rsp
+	mov rdx, [rsp + 40]
+	add rdx, [rsp + 48]
+	mov rax, [rsp + 48]
+	mov [rsp + 40], rax
+	mov [rsp + 48], rdx
+	pop rbp
+	ret
 
 print_result:
     mov rax, [number]
