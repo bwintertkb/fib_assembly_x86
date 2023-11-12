@@ -2,7 +2,7 @@
 
 section .data
     number_size dd 12
-    num_loops dd 19 
+    num_loops dd 11 
 
 section .bss
     number resb 12
@@ -38,18 +38,18 @@ fib_loop:
     dec rcx
     cmp rcx, 0
     jg fib_loop
-	mov rax, [rsp + 24] ; Last fib. number
+	mov rax, [rsp + 8] ; Last fib. number
 	mov [number], rax
     ret
 
 fib_calc:
 	push rbp
 	mov rbp, rsp
-	mov rdx, [rsp + 40]
-	add rdx, [rsp + 48]
-	mov rax, [rsp + 48]
-	mov [rsp + 40], rax
-	mov [rsp + 48], rdx
+	mov rdx, [rsp + 32]
+	add rdx, [rsp + 40]
+	mov rax, [rsp + 40]
+	mov [rsp + 32], rax
+	mov [rsp + 40], rdx
 	pop rbp
 	ret
 
