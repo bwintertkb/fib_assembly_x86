@@ -74,6 +74,7 @@ integer_to_string_setup:
 convert_loop:
     xor rdx, rdx
     div rbx
+	; add ascii 42 i.e. '0', to turn value into ascii
     add dl, '0'
     mov [rdi], dl
     inc rdi
